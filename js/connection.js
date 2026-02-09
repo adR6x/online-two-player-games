@@ -61,7 +61,7 @@ class GameConnection {
 
       this.peer.on('connection', (conn) => {
         this.conn = conn;
-        this._setupConnection();
+        this._waitForOpen(conn);
       });
 
       this.peer.on('error', (err) => {
@@ -74,7 +74,7 @@ class GameConnection {
           this.peer.on('open', () => resolve(this.roomCode));
           this.peer.on('connection', (conn) => {
             this.conn = conn;
-            this._setupConnection();
+            this._waitForOpen(conn);
           });
           this.peer.on('error', (e) => {
             this._handleError(e);
@@ -103,10 +103,7 @@ class GameConnection {
       this.peer.on('open', () => {
         this.conn = this.peer.connect(hostId, { reliable: true });
 
-        this.conn.on('open', () => {
-          this._setupConnection();
-          resolve();
-        });
+        this._waitForOpen(this.conn).then(resolve).catch(reject);
 
         this.conn.on('error', (err) => {
           this._handleError(err);
@@ -117,6 +114,31 @@ class GameConnection {
       this.peer.on('error', (err) => {
         this._handleError(err);
         reject(err);
+      });
+    });
+  }
+
+  /**
+   * Wait for a DataConnection to be open, then set up handlers.
+   * Handles the case where the connection is already open.
+   */
+  _waitForOpen(conn) {
+    return new Promise((resolve, reject) => {
+      if (conn.open) {
+        this._setupConnection();
+        resolve();
+        return;
+      }
+
+      const timeout = setTimeout(() => {
+        reject(new Error('Connection timed out'));
+        this._handleError({ type: 'timeout', message: 'Connection timed out' });
+      }, 15000);
+
+      conn.on('open', () => {
+        clearTimeout(timeout);
+        this._setupConnection();
+        resolve();
       });
     });
   }
