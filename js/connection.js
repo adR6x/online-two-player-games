@@ -30,6 +30,31 @@ class GameConnection {
     this.onData = null;
     this.onDisconnected = null;
     this.onError = null;
+
+    // ICE servers for NAT traversal (STUN for discovery, TURN for relay fallback)
+    this._iceConfig = {
+      config: {
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+          {
+            urls: 'turn:openrelay.metered.ca:80',
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+          },
+          {
+            urls: 'turn:openrelay.metered.ca:443',
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+          },
+          {
+            urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+          }
+        ]
+      }
+    };
   }
 
   /**
@@ -53,7 +78,7 @@ class GameConnection {
       this.roomCode = this._generateCode();
       const peerId = 'otpg_' + this.roomCode;
 
-      this.peer = new Peer(peerId);
+      this.peer = new Peer(peerId, this._iceConfig);
 
       this.peer.on('open', () => {
         resolve(this.roomCode);
@@ -70,7 +95,7 @@ class GameConnection {
           this.peer.destroy();
           this.roomCode = this._generateCode();
           const retryId = 'otpg_' + this.roomCode;
-          this.peer = new Peer(retryId);
+          this.peer = new Peer(retryId, this._iceConfig);
           this.peer.on('open', () => resolve(this.roomCode));
           this.peer.on('connection', (conn) => {
             this.conn = conn;
@@ -98,7 +123,7 @@ class GameConnection {
       const peerId = 'otpg_guest_' + this._generateCode();
       const hostId = 'otpg_' + this.roomCode;
 
-      this.peer = new Peer(peerId);
+      this.peer = new Peer(peerId, this._iceConfig);
 
       this.peer.on('open', () => {
         this.conn = this.peer.connect(hostId, { reliable: true });
