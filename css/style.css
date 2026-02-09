@@ -296,7 +296,10 @@ a:hover {
   margin-top: 0.5rem;
 }
 
-.copy-btn {
+.share-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
   margin-top: 0.75rem;
 }
 

@@ -18,6 +18,7 @@ const $codeInput    = document.getElementById('code-input');
 const $roomDisplay  = document.getElementById('room-display');
 const $roomCode     = document.getElementById('room-code');
 const $copyBtn      = document.getElementById('copy-btn');
+const $copyLinkBtn  = document.getElementById('copy-link-btn');
 const $waitingText  = document.getElementById('waiting-text');
 const $connStatus   = document.getElementById('conn-status');
 const $board        = document.getElementById('board');
@@ -129,6 +130,19 @@ $joinBtn.addEventListener('click', async () => {
 
 $codeInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') $joinBtn.click();
+});
+
+function getShareLink(code) {
+  const url = new URL(window.location.href.split('?')[0]);
+  url.searchParams.set('code', code);
+  return url.toString();
+}
+
+$copyLinkBtn.addEventListener('click', () => {
+  navigator.clipboard.writeText(getShareLink($roomCode.textContent)).then(() => {
+    $copyLinkBtn.textContent = 'Copied!';
+    setTimeout(() => { $copyLinkBtn.textContent = 'Copy Link'; }, 1500);
+  });
 });
 
 $copyBtn.addEventListener('click', () => {
@@ -255,3 +269,16 @@ $backMenuBtn.addEventListener('click', () => {
   gc.destroy();
   window.location.href = '../../index.html';
 });
+
+// =====================
+//  Auto-join from URL
+// =====================
+
+(function autoJoinFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  if (code && code.trim().length >= 4) {
+    $codeInput.value = code.trim().toUpperCase();
+    $joinBtn.click();
+  }
+})();
