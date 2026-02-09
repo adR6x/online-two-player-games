@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tic-Tac-Toe — Online 2-Player</title>
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="ttt-page">
+
+  <a href="../../index.html" class="back-link">&larr; Back to Games</a>
+
+  <!-- ===== Lobby ===== -->
+  <div id="lobby" class="lobby">
+    <h2>Tic-Tac-Toe</h2>
+
+    <div class="lobby-actions">
+      <button id="create-btn" class="btn btn-primary">Create Game</button>
+
+      <div class="lobby-divider"><span>or</span></div>
+
+      <div class="join-row">
+        <input
+          id="code-input"
+          class="input"
+          type="text"
+          placeholder="Room code"
+          maxlength="6"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button id="join-btn" class="btn btn-secondary">Join</button>
+      </div>
+    </div>
+
+    <!-- Room code display (shown after creating) -->
+    <div id="room-display" class="room-code-display hidden">
+      <div class="code" id="room-code"></div>
+      <p>Share this code with your opponent</p>
+      <button id="copy-btn" class="btn btn-small btn-secondary copy-btn">Copy Code</button>
+    </div>
+
+    <p id="waiting-text" class="waiting-text hidden">Waiting for opponent to join&hellip;</p>
+    <div id="conn-status" class="connection-status"></div>
+  </div>
+
+  <!-- ===== Game Area ===== -->
+  <div id="game-area" class="hidden">
+    <div class="status-bar">
+      <span id="turn-text" class="turn-indicator">Your turn</span>
+      <span id="score-text" class="scores"></span>
+    </div>
+
+    <div class="board-container">
+      <div id="board" class="board">
+        <div class="cell" data-index="0"></div>
+        <div class="cell" data-index="1"></div>
+        <div class="cell" data-index="2"></div>
+        <div class="cell" data-index="3"></div>
+        <div class="cell" data-index="4"></div>
+        <div class="cell" data-index="5"></div>
+        <div class="cell" data-index="6"></div>
+        <div class="cell" data-index="7"></div>
+        <div class="cell" data-index="8"></div>
+      </div>
+    </div>
+
+    <div id="conn-status-game" class="connection-status connected">Connected</div>
+  </div>
+
+  <!-- ===== Game Over Overlay ===== -->
+  <div id="overlay" class="overlay hidden">
+    <div class="overlay-content">
+      <h2 id="result-title"></h2>
+      <p id="result-msg"></p>
+      <div class="overlay-buttons">
+        <button id="play-again-btn" class="btn btn-primary">Play Again</button>
+        <button id="back-menu-btn" class="btn btn-secondary">Back to Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Scripts ===== -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="../../js/connection.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
