@@ -1,6 +1,6 @@
 /* ===== Connect Four Game Logic ===== */
 
-let gc = new GameConnection();
+let gc = new GameConnection('connectfour');
 
 // --- Constants ---
 const ROWS = 6;
@@ -74,7 +74,7 @@ function wireCallbacks(conn) {
 function returnToLobby(message) {
   gameActive = false;
   gc.destroy();
-  gc = new GameConnection();
+  gc = new GameConnection('connectfour');
   wireCallbacks(gc);
 
   // Reset game state

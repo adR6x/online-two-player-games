@@ -2,7 +2,7 @@
  * GameConnection — Firebase Realtime Database connection manager for online games.
  *
  * Usage:
- *   const gc = new GameConnection();
+ *   const gc = new GameConnection('tictactoe');
  *   gc.onConnected = () => { ... };
  *   gc.onData = (data) => { ... };
  *   gc.onDisconnected = () => { ... };
@@ -19,8 +19,10 @@
  */
 
 class GameConnection {
-  constructor() {
+  constructor(gameId) {
+    if (!gameId) throw new Error('GameConnection requires a gameId');
     this.db = firebase.database();
+    this.gameId = gameId;
     this.isHost = false;
     this.roomCode = null;
     this._roomRef = null;
@@ -63,14 +65,14 @@ class GameConnection {
 
       try {
         // Check if room already exists (code collision)
-        const roomRef = this.db.ref('rooms/' + this.roomCode);
+        const roomRef = this.db.ref('rooms/' + this.gameId + '/' + this.roomCode);
         const snapshot = await roomRef.once('value');
         if (snapshot.exists()) {
           // Collision — generate a new code
           this.roomCode = this._generateCode();
         }
 
-        this._roomRef = this.db.ref('rooms/' + this.roomCode);
+        this._roomRef = this.db.ref('rooms/' + this.gameId + '/' + this.roomCode);
 
         // Create the room
         await this._roomRef.set({
@@ -106,7 +108,7 @@ class GameConnection {
     return new Promise(async (resolve, reject) => {
       this.isHost = false;
       this.roomCode = code.toUpperCase().trim();
-      this._roomRef = this.db.ref('rooms/' + this.roomCode);
+      this._roomRef = this.db.ref('rooms/' + this.gameId + '/' + this.roomCode);
 
       try {
         // Verify room exists and host is present

@@ -1,6 +1,6 @@
 /* ===== Tic-Tac-Toe Game Logic ===== */
 
-let gc = new GameConnection();
+let gc = new GameConnection('tictactoe');
 
 // --- State ---
 let board = Array(9).fill(null);   // null | 'X' | 'O'
@@ -78,7 +78,7 @@ function wireCallbacks(conn) {
 function returnToLobby(message) {
   gameActive = false;
   gc.destroy();
-  gc = new GameConnection();
+  gc = new GameConnection('tictactoe');
   wireCallbacks(gc);
 
   // Reset game state
