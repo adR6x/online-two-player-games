@@ -18,8 +18,8 @@ Game state is synced in real-time through Firebase Realtime Database. Both playe
 | Game | Status |
 |------|--------|
 | Tic-Tac-Toe | Live |
-| Connect Four | Coming Soon |
-| Battleship | Coming Soon |
+| Connect Four | Live |
+| Battleship | Live |
 
 ## Tech Stack
 
@@ -37,10 +37,18 @@ Game state is synced in real-time through Firebase Realtime Database. Both playe
 │   ├── firebase-config.js  # Firebase project configuration
 │   └── connection.js       # Reusable Firebase connection manager
 └── games/
-    └── tictactoe/
-        ├── index.html      # Game page (lobby + board)
-        ├── style.css       # Game-specific styles
-        └── game.js         # Game logic
+    ├── tictactoe/
+    │   ├── index.html      # Game page (lobby + board)
+    │   ├── style.css       # Game-specific styles
+    │   └── game.js         # Game logic
+    ├── connectfour/
+    │   ├── index.html
+    │   ├── style.css
+    │   └── game.js
+    └── battleship/
+        ├── index.html
+        ├── style.css
+        └── game.js
 ```
 
 ## Adding a New Game

@@ -1,0 +1,325 @@
+/* ===== Battleship Specific Styles ===== */
+
+.bs-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.bs-page .back-link {
+  flex-shrink: 0;
+}
+
+/* ===== Placement Phase ===== */
+
+.placement-header {
+  text-align: center;
+  padding: 1rem 1rem 0;
+}
+
+.placement-header h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.placement-instruction {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.placement-layout {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 2rem;
+  padding: 1rem;
+  flex-wrap: wrap;
+}
+
+/* ===== Ship Panel ===== */
+
+.ship-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 180px;
+}
+
+.ship-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.ship-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.85rem;
+  transition: all var(--transition);
+}
+
+.ship-option:hover {
+  border-color: var(--neon-cyan);
+}
+
+.ship-option.selected {
+  border-color: var(--neon-cyan);
+  background: rgba(0, 240, 255, 0.08);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.15);
+}
+
+.ship-option.placed {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.ship-name {
+  font-weight: 600;
+}
+
+.ship-blocks {
+  display: flex;
+  gap: 2px;
+}
+
+.ship-blocks span {
+  width: 14px;
+  height: 14px;
+  background: var(--neon-cyan);
+  border-radius: 2px;
+  opacity: 0.6;
+}
+
+.ship-option.selected .ship-blocks span {
+  opacity: 1;
+}
+
+.placement-controls {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.placement-controls .btn {
+  flex: 1;
+  min-width: 0;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.8rem;
+}
+
+#ready-btn {
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+/* ===== Board Wrapper ===== */
+
+.board-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.board-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ===== 10x10 Battleship Grid ===== */
+
+.bs-board {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(10, 1fr);
+  gap: 1px;
+  width: 340px;
+  height: 340px;
+  background: var(--border-color);
+  border: 2px solid var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bs-cell {
+  background: var(--bg-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: background 0.15s ease;
+}
+
+/* ===== Cell States ===== */
+
+/* Ship visible on own board */
+.bs-cell.ship {
+  background: rgba(0, 240, 255, 0.15);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+}
+
+/* Placement preview */
+.bs-cell.preview {
+  background: rgba(0, 240, 255, 0.25);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+}
+
+.bs-cell.preview-invalid {
+  background: rgba(255, 68, 68, 0.25);
+  border: 1px solid rgba(255, 68, 68, 0.4);
+}
+
+/* Attackable cells (opponent board during battle) */
+.attackable .bs-cell {
+  cursor: crosshair;
+}
+
+.attackable .bs-cell:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.attackable .bs-cell.hit,
+.attackable .bs-cell.miss {
+  cursor: default;
+}
+
+/* Hit marker */
+.bs-cell.hit {
+  background: rgba(255, 50, 50, 0.2);
+}
+
+.bs-cell.hit::after {
+  content: '';
+  width: 60%;
+  height: 60%;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ff4444, #cc0000);
+  box-shadow: 0 0 10px rgba(255, 68, 68, 0.6);
+  animation: hitPop 0.3s ease-out;
+}
+
+/* Miss marker */
+.bs-cell.miss::after {
+  content: '';
+  width: 30%;
+  height: 30%;
+  border-radius: 50%;
+  background: #555;
+  box-shadow: 0 0 4px rgba(85, 85, 85, 0.4);
+  animation: missPop 0.3s ease-out;
+}
+
+/* Sunk ship cells */
+.bs-cell.sunk {
+  background: rgba(180, 30, 30, 0.3);
+}
+
+.bs-cell.sunk::after {
+  background: radial-gradient(circle, #ff2222, #990000);
+  box-shadow: 0 0 14px rgba(255, 34, 34, 0.8);
+  animation: sunkPulse 1.5s ease-in-out infinite alternate;
+}
+
+/* ===== Battle Phase Layout ===== */
+
+.boards-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 2rem;
+  padding: 1rem;
+  flex-wrap: wrap;
+}
+
+.bs-status-bar {
+  max-width: 740px;
+}
+
+/* ===== Animations ===== */
+
+@keyframes hitPop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes missPop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes sunkPulse {
+  from {
+    box-shadow: 0 0 10px rgba(255, 34, 34, 0.6);
+  }
+  to {
+    box-shadow: 0 0 20px rgba(255, 34, 34, 0.9);
+  }
+}
+
+/* ===== Result Overlay ===== */
+
+#result-title {
+  font-size: 2rem;
+}
+
+/* ===== Turn Indicator ===== */
+
+.turn-indicator {
+  font-weight: 600;
+}
+
+.turn-indicator.my-turn {
+  color: var(--neon-green);
+}
+
+/* ===== Responsive ===== */
+
+@media (max-width: 740px) {
+  .boards-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .placement-layout {
+    flex-direction: column-reverse;
+    align-items: center;
+  }
+}
+
+@media (max-width: 380px) {
+  .bs-board {
+    width: 290px;
+    height: 290px;
+  }
+
+  .ship-panel {
+    min-width: 160px;
+  }
+}

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Battleship — Online 2-Player</title>
+  <link rel="stylesheet" href="../../css/style.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bs-page">
+
+  <a href="../../index.html" class="back-link">&larr; Back to Games</a>
+
+  <!-- ===== Lobby ===== -->
+  <div id="lobby" class="lobby">
+    <h2>Battleship</h2>
+
+    <div class="lobby-actions">
+      <button id="create-btn" class="btn btn-primary">Create Game</button>
+
+      <div class="lobby-divider"><span>or</span></div>
+
+      <div class="join-row">
+        <input
+          id="code-input"
+          class="input"
+          type="text"
+          placeholder="Room code"
+          maxlength="6"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button id="join-btn" class="btn btn-secondary">Join</button>
+      </div>
+    </div>
+
+    <!-- Room code display (shown after creating) -->
+    <div id="room-display" class="room-code-display hidden">
+      <div class="code" id="room-code"></div>
+      <p>Share the link or code with your opponent</p>
+      <div class="share-buttons">
+        <button id="copy-link-btn" class="btn btn-small btn-primary copy-btn">Copy Link</button>
+        <button id="copy-btn" class="btn btn-small btn-secondary copy-btn">Copy Code</button>
+      </div>
+    </div>
+
+    <p id="waiting-text" class="waiting-text hidden">Waiting for opponent to join&hellip;</p>
+    <div id="conn-status" class="connection-status"></div>
+  </div>
+
+  <!-- ===== Ship Placement Phase ===== -->
+  <div id="placement-area" class="hidden">
+    <div class="placement-header">
+      <h2>Place Your Ships</h2>
+      <p id="placement-instruction" class="placement-instruction">Select a ship, then click the grid to place it</p>
+    </div>
+
+    <div class="placement-layout">
+      <!-- Ship selection panel -->
+      <div class="ship-panel">
+        <div class="ship-list">
+          <button class="ship-option" data-ship="carrier" data-size="5">
+            <span class="ship-name">Carrier</span>
+            <span class="ship-blocks"><span></span><span></span><span></span><span></span><span></span></span>
+          </button>
+          <button class="ship-option" data-ship="battleship" data-size="4">
+            <span class="ship-name">Battleship</span>
+            <span class="ship-blocks"><span></span><span></span><span></span><span></span></span>
+          </button>
+          <button class="ship-option" data-ship="cruiser" data-size="3">
+            <span class="ship-name">Cruiser</span>
+            <span class="ship-blocks"><span></span><span></span><span></span></span>
+          </button>
+          <button class="ship-option" data-ship="submarine" data-size="3">
+            <span class="ship-name">Submarine</span>
+            <span class="ship-blocks"><span></span><span></span><span></span></span>
+          </button>
+          <button class="ship-option" data-ship="destroyer" data-size="2">
+            <span class="ship-name">Destroyer</span>
+            <span class="ship-blocks"><span></span><span></span></span>
+          </button>
+        </div>
+
+        <div class="placement-controls">
+          <button id="rotate-btn" class="btn btn-secondary btn-small">Rotate (R)</button>
+          <button id="random-btn" class="btn btn-secondary btn-small">Random</button>
+          <button id="clear-btn" class="btn btn-secondary btn-small">Clear</button>
+        </div>
+        <button id="ready-btn" class="btn btn-primary" disabled>Ready</button>
+      </div>
+
+      <!-- Placement grid -->
+      <div class="board-wrapper">
+        <h3 class="board-label">Your Board</h3>
+        <div id="placement-board" class="board bs-board"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Battle Phase ===== -->
+  <div id="game-area" class="hidden">
+    <div class="status-bar bs-status-bar">
+      <span id="turn-text" class="turn-indicator">Your turn</span>
+      <span id="score-text" class="scores"></span>
+    </div>
+
+    <div class="boards-container">
+      <!-- Opponent's board (attack here) -->
+      <div class="board-wrapper">
+        <h3 class="board-label">Opponent's Board</h3>
+        <div id="opponent-board" class="board bs-board attackable"></div>
+      </div>
+
+      <!-- Your board (shows your ships + incoming attacks) -->
+      <div class="board-wrapper">
+        <h3 class="board-label">Your Board</h3>
+        <div id="my-board" class="board bs-board"></div>
+      </div>
+    </div>
+
+    <div id="conn-status-game" class="connection-status connected">Connected</div>
+  </div>
+
+  <!-- ===== Game Over Overlay ===== -->
+  <div id="overlay" class="overlay hidden">
+    <div class="overlay-content">
+      <h2 id="result-title"></h2>
+      <p id="result-msg"></p>
+      <div class="overlay-buttons">
+        <button id="play-again-btn" class="btn btn-primary">Play Again</button>
+        <button id="back-menu-btn" class="btn btn-secondary">Back to Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Waiting Overlay (opponent still placing) ===== -->
+  <div id="waiting-overlay" class="overlay hidden">
+    <div class="overlay-content">
+      <h2>Ships Deployed!</h2>
+      <p class="waiting-text">Waiting for opponent to finish placing ships&hellip;</p>
+    </div>
+  </div>
+
+  <!-- ===== Scripts ===== -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+  <script src="../../js/firebase-config.js"></script>
+  <script src="../../js/connection.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
