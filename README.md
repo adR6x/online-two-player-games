@@ -2,7 +2,7 @@
 
 Play classic games with a friend — no sign-up, just a room code.
 
-**[Play Now → anubhavdhakal.github.io/online-two-player-games](https://anubhavdhakal.github.io/online-two-player-games/)**
+**[Play Now → anubhavdhakal.github.io/online-two-player-games](https://adR6x.github.io/online-two-player-games/)**
 
 ## How It Works
 
