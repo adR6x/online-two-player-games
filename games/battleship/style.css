@@ -83,9 +83,15 @@
 }
 
 .ship-icon {
-  font-size: 1.3rem;
-  line-height: 1;
+  display: flex;
+  align-items: center;
   flex-shrink: 0;
+  color: var(--neon-cyan);
+  opacity: 0.7;
+}
+
+.ship-option.selected .ship-icon {
+  opacity: 1;
 }
 
 .ship-name {
@@ -237,6 +243,39 @@
   background: radial-gradient(circle, #ff2222, #990000);
   box-shadow: 0 0 14px rgba(255, 34, 34, 0.8);
   animation: sunkPulse 1.5s ease-in-out infinite alternate;
+}
+
+/* ===== Ship Icons on Board Cells ===== */
+
+.bs-cell.ship[data-ship]::before {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.bs-cell.ship[data-ship="carrier"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M1 16h22l-2-5H3L1 16z' fill='%2300f0ff'/%3E%3Crect x='2' y='11' width='20' height='1.2' rx='.5' fill='%2300f0ff'/%3E%3Crect x='17' y='7' width='4' height='4' rx='.5' fill='%2300f0ff'/%3E%3C/svg%3E");
+}
+
+.bs-cell.ship[data-ship="battleship"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 17h18l-2-5H5L3 17z' fill='%2300f0ff'/%3E%3Crect x='9' y='7' width='5' height='5' rx='1' fill='%2300f0ff'/%3E%3Crect x='11' y='3' width='1.5' height='4' rx='.5' fill='%2300f0ff'/%3E%3C/svg%3E");
+}
+
+.bs-cell.ship[data-ship="cruiser"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M1 17h22l-4-6H5L1 17z' fill='%2300f0ff'/%3E%3Crect x='10' y='9' width='4' height='2.5' rx='.5' fill='%2300f0ff'/%3E%3C/svg%3E");
+}
+
+.bs-cell.ship[data-ship="submarine"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cellipse cx='12' cy='15' rx='11' ry='4' fill='%2300f0ff'/%3E%3Crect x='15' y='7' width='1.8' height='5' rx='.5' fill='%2300f0ff'/%3E%3Crect x='14' y='7' width='5' height='1.8' rx='.5' fill='%2300f0ff'/%3E%3C/svg%3E");
+}
+
+.bs-cell.ship[data-ship="destroyer"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 17h14l-3-6H8L5 17z' fill='%2300f0ff'/%3E%3Crect x='10' y='9' width='3' height='2' rx='.5' fill='%2300f0ff'/%3E%3C/svg%3E");
 }
 
 /* ===== Battle Phase Layout ===== */

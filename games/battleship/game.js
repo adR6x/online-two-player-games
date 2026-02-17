@@ -512,6 +512,7 @@ $placementBoard.addEventListener('click', (e) => {
     const el = getCell($placementBoard, r, c);
     el.classList.add('ship');
     el.classList.remove('preview');
+    el.dataset.ship = selectedShip.name;
   });
 
   placedShips[selectedShip.name] = { cells };
@@ -551,6 +552,7 @@ $randomBtn.addEventListener('click', () => {
           myBoard[r][c] = ship.name;
           const el = getCell($placementBoard, r, c);
           el.classList.add('ship');
+          el.dataset.ship = ship.name;
         });
         placedShips[ship.name] = { cells };
         placed = true;
@@ -576,6 +578,7 @@ function clearAllShips() {
 
   $placementBoard.querySelectorAll('.bs-cell').forEach(c => {
     c.classList.remove('ship', 'preview', 'preview-invalid');
+    delete c.dataset.ship;
   });
 
   shipOptions.forEach(opt => {
@@ -635,7 +638,9 @@ function startBattle() {
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       if (myBoard[r][c] !== null) {
-        getCell($myBoard, r, c).classList.add('ship');
+        const cell = getCell($myBoard, r, c);
+        cell.classList.add('ship');
+        cell.dataset.ship = myBoard[r][c];
       }
     }
   }
