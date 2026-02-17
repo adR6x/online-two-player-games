@@ -1,6 +1,7 @@
 /* ===== Connect Four Game Logic ===== */
 
 let gc = new GameConnection('connectfour');
+let unsubRoomBrowser = null;
 
 // --- Constants ---
 const ROWS = 6;
@@ -14,28 +15,35 @@ let gameActive = false;
 let scores = { R: 0, Y: 0, draws: 0 };
 
 // --- DOM refs ---
-const $lobby        = document.getElementById('lobby');
-const $gameArea     = document.getElementById('game-area');
-const $createBtn    = document.getElementById('create-btn');
-const $joinBtn      = document.getElementById('join-btn');
-const $codeInput    = document.getElementById('code-input');
-const $roomDisplay  = document.getElementById('room-display');
-const $roomCode     = document.getElementById('room-code');
-const $copyBtn      = document.getElementById('copy-btn');
-const $copyLinkBtn  = document.getElementById('copy-link-btn');
-const $waitingText  = document.getElementById('waiting-text');
-const $connStatus   = document.getElementById('conn-status');
-const $board        = document.getElementById('board');
-const $previewRow   = document.getElementById('preview-row');
-const $turnText     = document.getElementById('turn-text');
-const $scoreText    = document.getElementById('score-text');
-const $overlay      = document.getElementById('overlay');
-const $resultTitle  = document.getElementById('result-title');
-const $resultMsg    = document.getElementById('result-msg');
-const $playAgainBtn = document.getElementById('play-again-btn');
-const $backMenuBtn  = document.getElementById('back-menu-btn');
-const cells         = document.querySelectorAll('.cell');
-const previewCells  = document.querySelectorAll('.preview-cell');
+const $lobby              = document.getElementById('lobby');
+const $gameArea           = document.getElementById('game-area');
+const $createBtn          = document.getElementById('create-btn');
+const $joinBtn            = document.getElementById('join-btn');
+const $codeInput          = document.getElementById('code-input');
+const $roomDisplay        = document.getElementById('room-display');
+const $roomCode           = document.getElementById('room-code');
+const $copyBtn            = document.getElementById('copy-btn');
+const $copyLinkBtn        = document.getElementById('copy-link-btn');
+const $waitingText        = document.getElementById('waiting-text');
+const $connStatus         = document.getElementById('conn-status');
+const $board              = document.getElementById('board');
+const $previewRow         = document.getElementById('preview-row');
+const $turnText           = document.getElementById('turn-text');
+const $scoreText          = document.getElementById('score-text');
+const $overlay            = document.getElementById('overlay');
+const $resultTitle        = document.getElementById('result-title');
+const $resultMsg          = document.getElementById('result-msg');
+const $playAgainBtn       = document.getElementById('play-again-btn');
+const $backMenuBtn        = document.getElementById('back-menu-btn');
+const cells               = document.querySelectorAll('.cell');
+const previewCells        = document.querySelectorAll('.preview-cell');
+const $roomBrowser        = document.getElementById('room-browser');
+const $roomList           = document.getElementById('room-list');
+const $joinRequestAlert   = document.getElementById('join-request-alert');
+const $acceptJoinBtn      = document.getElementById('accept-join-btn');
+const $rejectJoinBtn      = document.getElementById('reject-join-btn');
+const $joinRequestPending = document.getElementById('join-request-pending');
+const $cancelRequestBtn   = document.getElementById('cancel-request-btn');
 
 // =====================
 //  Connection Callbacks
@@ -47,6 +55,7 @@ function wireCallbacks(conn) {
     $connStatus.className = 'connection-status connected';
     $lobby.classList.add('hidden');
     $gameArea.classList.remove('hidden');
+    stopRoomBrowser();
     startNewRound();
   };
 
@@ -69,6 +78,10 @@ function wireCallbacks(conn) {
     $connStatus.textContent = 'Connection error: ' + (err.type || err.message || err);
     $connStatus.className = 'connection-status error';
   };
+
+  conn.onJoinRequest = () => {
+    $joinRequestAlert.classList.remove('hidden');
+  };
 }
 
 function returnToLobby(message) {
@@ -88,6 +101,9 @@ function returnToLobby(message) {
   $lobby.classList.remove('hidden');
   $roomDisplay.classList.add('hidden');
   $waitingText.classList.add('hidden');
+  $joinRequestAlert.classList.add('hidden');
+  $joinRequestPending.classList.add('hidden');
+  $roomBrowser.classList.remove('hidden');
   $createBtn.disabled = false;
   $joinBtn.disabled = false;
   $codeInput.disabled = false;
@@ -97,9 +113,111 @@ function returnToLobby(message) {
 
   $connStatus.textContent = message;
   $connStatus.className = 'connection-status error';
+
+  startRoomBrowser();
 }
 
 wireCallbacks(gc);
+
+// =====================
+//  Room Browser
+// =====================
+
+function startRoomBrowser() {
+  stopRoomBrowser();
+  unsubRoomBrowser = GameConnection.listActiveRooms('connectfour', (rooms) => {
+    renderRoomList(rooms);
+  });
+}
+
+function stopRoomBrowser() {
+  if (unsubRoomBrowser) {
+    unsubRoomBrowser();
+    unsubRoomBrowser = null;
+  }
+}
+
+function renderRoomList(rooms) {
+  if (rooms.length === 0) {
+    $roomList.innerHTML = '<p class="room-list-empty">No open rooms</p>';
+    return;
+  }
+
+  $roomList.innerHTML = '';
+  for (const room of rooms) {
+    const item = document.createElement('div');
+    item.className = 'room-list-item';
+    item.innerHTML =
+      '<span class="room-code-label">' + room.code + '</span>' +
+      '<button class="btn btn-small btn-primary ask-join-btn" data-code="' + room.code + '">Ask to Join</button>';
+    $roomList.appendChild(item);
+  }
+}
+
+// Ask to Join click handler (event delegation)
+$roomList.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.ask-join-btn');
+  if (!btn) return;
+
+  const code = btn.dataset.code;
+
+  // Disable lobby, hide browser, show pending UI
+  $createBtn.disabled = true;
+  $joinBtn.disabled = true;
+  $codeInput.disabled = true;
+  $roomBrowser.classList.add('hidden');
+  $joinRequestPending.classList.remove('hidden');
+  $connStatus.textContent = 'Requesting to join...';
+  $connStatus.className = 'connection-status';
+
+  try {
+    myColor = 'Y';
+    await gc.requestToJoin(code);
+  } catch (err) {
+    $connStatus.textContent = err.message || 'Could not join. Try again.';
+    $connStatus.className = 'connection-status error';
+    myColor = null;
+    $joinRequestPending.classList.add('hidden');
+    $roomBrowser.classList.remove('hidden');
+    $createBtn.disabled = false;
+    $joinBtn.disabled = false;
+    $codeInput.disabled = false;
+
+    // Recreate connection for a clean state
+    gc.destroy();
+    gc = new GameConnection('connectfour');
+    wireCallbacks(gc);
+  }
+});
+
+// Accept / Reject buttons (host side)
+$acceptJoinBtn.addEventListener('click', () => {
+  gc.acceptJoinRequest();
+  $joinRequestAlert.classList.add('hidden');
+});
+
+$rejectJoinBtn.addEventListener('click', () => {
+  gc.rejectJoinRequest();
+  $joinRequestAlert.classList.add('hidden');
+});
+
+// Cancel button (requester side)
+$cancelRequestBtn.addEventListener('click', () => {
+  gc.destroy();
+  gc = new GameConnection('connectfour');
+  wireCallbacks(gc);
+
+  myColor = null;
+  $joinRequestPending.classList.add('hidden');
+  $roomBrowser.classList.remove('hidden');
+  $createBtn.disabled = false;
+  $joinBtn.disabled = false;
+  $codeInput.disabled = false;
+  $connStatus.textContent = '';
+  $connStatus.className = 'connection-status';
+
+  startRoomBrowser();
+});
 
 // =====================
 //  Lobby Actions
@@ -109,8 +227,10 @@ $createBtn.addEventListener('click', async () => {
   $createBtn.disabled = true;
   $joinBtn.disabled = true;
   $codeInput.disabled = true;
+  $roomBrowser.classList.add('hidden');
   $connStatus.textContent = 'Creating game...';
   $connStatus.className = 'connection-status';
+  stopRoomBrowser();
 
   try {
     const code = await gc.createGame();
@@ -122,9 +242,11 @@ $createBtn.addEventListener('click', async () => {
   } catch {
     $connStatus.textContent = 'Failed to create game. Try again.';
     $connStatus.className = 'connection-status error';
+    $roomBrowser.classList.remove('hidden');
     $createBtn.disabled = false;
     $joinBtn.disabled = false;
     $codeInput.disabled = false;
+    startRoomBrowser();
   }
 });
 
@@ -141,6 +263,7 @@ $joinBtn.addEventListener('click', async () => {
   $codeInput.disabled = true;
   $connStatus.textContent = 'Joining...';
   $connStatus.className = 'connection-status';
+  stopRoomBrowser();
 
   try {
     myColor = 'Y';
@@ -151,6 +274,7 @@ $joinBtn.addEventListener('click', async () => {
     $createBtn.disabled = false;
     $joinBtn.disabled = false;
     $codeInput.disabled = false;
+    startRoomBrowser();
   }
 });
 
@@ -396,19 +520,22 @@ $playAgainBtn.addEventListener('click', () => {
 });
 
 $backMenuBtn.addEventListener('click', () => {
+  stopRoomBrowser();
   gc.destroy();
   window.location.href = '../../index.html';
 });
 
 // =====================
-//  Auto-join from URL
+//  Init + Auto-join
 // =====================
 
-(function autoJoinFromURL() {
+(function init() {
   const params = new URLSearchParams(window.location.search);
   const code = params.get('code');
   if (code && code.trim().length >= 4) {
     $codeInput.value = code.trim().toUpperCase();
     $joinBtn.click();
+  } else {
+    startRoomBrowser();
   }
 })();

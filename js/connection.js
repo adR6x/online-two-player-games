@@ -33,6 +33,7 @@ class GameConnection {
     this.onData = null;
     this.onDisconnected = null;
     this.onError = null;
+    this.onJoinRequest = null;
   }
 
   /**
@@ -93,6 +94,15 @@ class GameConnection {
           }
         });
 
+        // Listen for join requests
+        const joinRequestRef = this._roomRef.child('joinRequest');
+        this._addListener(joinRequestRef, 'value', (snap) => {
+          const val = snap.val();
+          if (val && val.status === 'pending') {
+            if (this.onJoinRequest) this.onJoinRequest();
+          }
+        });
+
         resolve(this.roomCode);
       } catch (err) {
         this._handleError(err);
@@ -137,6 +147,151 @@ class GameConnection {
         reject(err);
       }
     });
+  }
+
+  /**
+   * List active (waiting) rooms for a game. Returns an unsubscribe function.
+   */
+  static listActiveRooms(gameId, callback) {
+    const db = firebase.database();
+    const roomsRef = db.ref('rooms/' + gameId);
+
+    const handler = (snapshot) => {
+      const rooms = [];
+      const data = snapshot.val();
+      if (data) {
+        for (const code of Object.keys(data)) {
+          const room = data[code];
+          if (room.host === true && room.guest === false) {
+            rooms.push({ code });
+          }
+        }
+      }
+      callback(rooms);
+    };
+
+    roomsRef.on('value', handler);
+
+    // Return unsubscribe function
+    return () => roomsRef.off('value', handler);
+  }
+
+  /**
+   * Request to join a room (guest/requester side).
+   * Resolves when the host accepts, rejects with an error if denied.
+   */
+  requestToJoin(code) {
+    return new Promise(async (resolve, reject) => {
+      this.isHost = false;
+      this.roomCode = code.toUpperCase().trim();
+      this._roomRef = this.db.ref('rooms/' + this.gameId + '/' + this.roomCode);
+
+      try {
+        // Verify room exists and host is present
+        const snapshot = await this._roomRef.once('value');
+        if (!snapshot.exists() || !snapshot.val().host) {
+          const err = new Error('Room not found. Check the code and try again.');
+          this._handleError(err);
+          reject(err);
+          return;
+        }
+
+        // Check if guest already joined
+        if (snapshot.val().guest) {
+          const err = new Error('Room is full.');
+          this._handleError(err);
+          reject(err);
+          return;
+        }
+
+        // Check for existing pending request
+        const existing = snapshot.val().joinRequest;
+        if (existing && existing.status === 'pending') {
+          const err = new Error('Someone else is already requesting to join.');
+          this._handleError(err);
+          reject(err);
+          return;
+        }
+
+        // Write join request
+        const joinRequestRef = this._roomRef.child('joinRequest');
+        await joinRequestRef.set({ status: 'pending' });
+
+        // Auto-cleanup if requester disconnects
+        joinRequestRef.onDisconnect().remove();
+
+        // Listen for status changes
+        const statusHandler = (snap) => {
+          const val = snap.val();
+          if (!val) {
+            // joinRequest was removed (e.g. host disconnected or cancelled)
+            joinRequestRef.off('value', statusHandler);
+            this._roomRef.child('host').off('value', hostHandler);
+            const err = new Error('Request was cancelled.');
+            reject(err);
+            return;
+          }
+
+          if (val.status === 'accepted') {
+            joinRequestRef.off('value', statusHandler);
+            this._roomRef.child('host').off('value', hostHandler);
+            joinRequestRef.onDisconnect().cancel();
+            // Complete join: set guest to true
+            this._roomRef.child('guest').set(true).then(() => {
+              this._roomRef.child('guest').onDisconnect().set(false);
+              this._setupMessageListener();
+              this._setupDisconnectListener('host');
+              if (this.onConnected) this.onConnected();
+              resolve();
+            });
+          } else if (val.status === 'rejected') {
+            joinRequestRef.off('value', statusHandler);
+            this._roomRef.child('host').off('value', hostHandler);
+            joinRequestRef.onDisconnect().cancel();
+            joinRequestRef.remove();
+            this._roomRef = null;
+            const err = new Error('The host declined your request.');
+            reject(err);
+          }
+        };
+
+        // Watch for host disconnecting while request is pending
+        const hostHandler = (snap) => {
+          if (!snap.val()) {
+            joinRequestRef.off('value', statusHandler);
+            this._roomRef.child('host').off('value', hostHandler);
+            joinRequestRef.onDisconnect().cancel();
+            joinRequestRef.remove();
+            this._roomRef = null;
+            const err = new Error('Host disconnected.');
+            reject(err);
+          }
+        };
+
+        joinRequestRef.on('value', statusHandler);
+        this._roomRef.child('host').on('value', hostHandler);
+
+      } catch (err) {
+        this._handleError(err);
+        reject(err);
+      }
+    });
+  }
+
+  /**
+   * Accept a pending join request (host side).
+   */
+  acceptJoinRequest() {
+    if (!this._roomRef) return;
+    this._roomRef.child('joinRequest/status').set('accepted');
+  }
+
+  /**
+   * Reject a pending join request (host side).
+   */
+  rejectJoinRequest() {
+    if (!this._roomRef) return;
+    this._roomRef.child('joinRequest/status').set('rejected');
   }
 
   /**
@@ -201,6 +356,7 @@ class GameConnection {
     if (this._roomRef) {
       this._roomRef.child('host').onDisconnect().cancel();
       this._roomRef.child('guest').onDisconnect().cancel();
+      this._roomRef.child('joinRequest').onDisconnect().cancel();
       this._roomRef.remove();
       this._roomRef = null;
     }

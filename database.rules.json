@@ -1,25 +1,36 @@
 {
   "rules": {
     "rooms": {
-      "$roomCode": {
-        ".read": true,
-        ".write": true,
-        ".validate": "newData.hasChildren(['host', 'guest'])",
+      "$gameId": {
+        "$roomCode": {
+          ".read": true,
+          ".write": true,
+          ".validate": "newData.hasChildren(['host', 'guest'])",
 
-        "host": {
-          ".validate": "newData.isBoolean()"
-        },
-        "guest": {
-          ".validate": "newData.isBoolean()"
-        },
-        "messages": {
-          "$messageId": {
-            ".validate": "newData.hasChildren(['from', 'data']) && newData.child('from').isString() && (newData.child('from').val() === 'host' || newData.child('from').val() === 'guest')"
+          "host": {
+            ".validate": "newData.isBoolean()"
+          },
+          "guest": {
+            ".validate": "newData.isBoolean()"
+          },
+          "joinRequest": {
+            ".validate": "newData.hasChildren(['status'])",
+            "status": {
+              ".validate": "newData.isString() && (newData.val() === 'pending' || newData.val() === 'accepted' || newData.val() === 'rejected')"
+            },
+            "$other": {
+              ".validate": false
+            }
+          },
+          "messages": {
+            "$messageId": {
+              ".validate": "newData.hasChildren(['from', 'data']) && newData.child('from').isString() && (newData.child('from').val() === 'host' || newData.child('from').val() === 'guest')"
+            }
+          },
+
+          "$other": {
+            ".validate": false
           }
-        },
-
-        "$other": {
-          ".validate": false
         }
       }
     },

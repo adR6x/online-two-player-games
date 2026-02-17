@@ -34,6 +34,29 @@
       </div>
     </div>
 
+    <!-- Active rooms browser -->
+    <div id="room-browser" class="room-browser">
+      <div class="lobby-divider"><span>or browse open rooms</span></div>
+      <div id="room-list" class="room-list">
+        <p class="room-list-empty">Looking for open rooms...</p>
+      </div>
+    </div>
+
+    <!-- Join request notification (host sees this) -->
+    <div id="join-request-alert" class="join-request-alert hidden">
+      <p>Someone wants to join your game!</p>
+      <div class="join-request-buttons">
+        <button id="accept-join-btn" class="btn btn-small btn-primary">Accept</button>
+        <button id="reject-join-btn" class="btn btn-small btn-secondary">Reject</button>
+      </div>
+    </div>
+
+    <!-- Join request pending (requester sees this) -->
+    <div id="join-request-pending" class="join-request-pending hidden">
+      <p class="waiting-text">Waiting for host to accept your request...</p>
+      <button id="cancel-request-btn" class="btn btn-small btn-secondary">Cancel</button>
+    </div>
+
     <!-- Room code display (shown after creating) -->
     <div id="room-display" class="room-code-display hidden">
       <div class="code" id="room-code"></div>
