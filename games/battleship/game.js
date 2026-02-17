@@ -23,6 +23,7 @@ let opponentShipsRemaining = 5;
 let isMyTurn = false;
 let gameActive = false;
 let isHost = false;
+let roundNumber = 0;
 let scores = { wins: 0, losses: 0 };
 
 // Placement state
@@ -172,6 +173,7 @@ function returnToLobby(message) {
   isHorizontal = true;
   myReady = false;
   opponentReady = false;
+  roundNumber = 0;
   scores = { wins: 0, losses: 0 };
 
   // Reset UI
@@ -621,7 +623,10 @@ function startBattle() {
   $gameArea.classList.remove('hidden');
 
   gameActive = true;
-  isMyTurn = isHost; // Host fires first
+  roundNumber++;
+  // Round 1: Host fires first, Round 2: Guest fires first, etc.
+  const hostGoesFirst = roundNumber % 2 === 1;
+  isMyTurn = isHost === hostGoesFirst;
 
   // Render my board with ships
   buildGridCells($myBoard);

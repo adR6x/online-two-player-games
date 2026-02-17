@@ -8,6 +8,7 @@ let board = Array(9).fill(null);   // null | 'X' | 'O'
 let mySymbol = null;               // 'X' for host, 'O' for guest
 let isMyTurn = false;
 let gameActive = false;
+let roundNumber = 0;
 let scores = { X: 0, O: 0, draws: 0 };
 
 // --- DOM refs ---
@@ -97,6 +98,7 @@ function returnToLobby(message) {
   // Reset game state
   board = Array(9).fill(null);
   mySymbol = null;
+  roundNumber = 0;
   scores = { X: 0, O: 0, draws: 0 };
 
   // Reset UI back to lobby
@@ -311,7 +313,10 @@ $copyBtn.addEventListener('click', () => {
 function startNewRound() {
   board = Array(9).fill(null);
   gameActive = true;
-  isMyTurn = mySymbol === 'X';   // X always goes first
+  roundNumber++;
+  // Round 1: X goes first, Round 2: O goes first, etc.
+  const hostGoesFirst = roundNumber % 2 === 1;
+  isMyTurn = (mySymbol === 'X') === hostGoesFirst;
   $overlay.classList.add('hidden');
 
   cells.forEach((cell, i) => {

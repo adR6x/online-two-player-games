@@ -12,6 +12,7 @@ let board = [];                    // board[row][col] = null | 'R' | 'Y'
 let myColor = null;                // 'R' for host, 'Y' for guest
 let isMyTurn = false;
 let gameActive = false;
+let roundNumber = 0;
 let scores = { R: 0, Y: 0, draws: 0 };
 
 // --- DOM refs ---
@@ -93,6 +94,7 @@ function returnToLobby(message) {
   // Reset game state
   board = [];
   myColor = null;
+  roundNumber = 0;
   scores = { R: 0, Y: 0, draws: 0 };
 
   // Reset UI back to lobby
@@ -317,7 +319,10 @@ function createEmptyBoard() {
 function startNewRound() {
   board = createEmptyBoard();
   gameActive = true;
-  isMyTurn = myColor === 'R';   // Red (host) always goes first
+  roundNumber++;
+  // Round 1: Red goes first, Round 2: Yellow goes first, etc.
+  const hostGoesFirst = roundNumber % 2 === 1;
+  isMyTurn = (myColor === 'R') === hostGoesFirst;
   $overlay.classList.add('hidden');
 
   // Clear all discs from cells
